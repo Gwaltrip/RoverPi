@@ -1,4 +1,5 @@
 HEADERS = Compass.c gps.c
+HEADERSTCP = tcp.c
 LIBS = -lm -lwiringPi -pthread
 CC = gcc
 default: all
@@ -12,7 +13,7 @@ bluetooth: roverblue.c $(HEADERS)
 	$(CC) -o RoverBluetooth.out $(LIBS) -lbluetooth  roverblue.c
 
 tcp: rovertcp.c $(HEADERS)
-	$(CC) -o RoverTCP.out $(LIBS) rovertcp.c
+	$(CC) -o RoverTCP.out $(LIBS) $(HEADERSTCP)  rovertcp.c
 
 clean:
 	-rm -f RoverGps.out

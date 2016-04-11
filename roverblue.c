@@ -34,13 +34,19 @@ int main(int argc, char **argv)
 {
 	char last = mode;
 	pthread_t blue;
-	pthread_create(&blue, NULL,blueListener,"");
+	pthread_create(&blue,NULL,blueListener,"");
+
+        wiringPiSetup();
+        pinMode(MOTOR_LEFT_A,OUTPUT);
+        pinMode(MOTOR_LEFT_B,OUTPUT);
+        pinMode(MOTOR_RIGHT_A,OUTPUT);
+        pinMode(MOTOR_RIGHT_B,OUTPUT);
 	/*Starts Main Loop*/
 	printf("Starting Mainloop!\n");
 	while (mode) {
 		if(last != mode){
 			Stop_All_Motors();
-			last == mode;
+			last = mode;
 		}
 		//Fordward
 		if(mode == 0x1){
@@ -64,6 +70,7 @@ int main(int argc, char **argv)
 		}
 		delay(50);
 	}
+	Stop_All_Motors();
 	return 0;
 }
 
