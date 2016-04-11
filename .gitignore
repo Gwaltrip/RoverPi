@@ -1,0 +1,6 @@
+*.exe
+PiSockets/bin/Debug/PiSockets.exe.config
+PiSockets/bin/Debug/PiSockets.vshost.exe.manifest
+PiSockets/obj/Debug/PiSockets.csproj.FileListAbsolute.txt
+*.pdb
+PiSockets/bin/Debug/PiSockets.vshost.exe.config
