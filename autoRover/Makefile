@@ -1,10 +1,11 @@
 HEADERS = Compass.c gps.c
-LIBS = -lm -lwiringPi -pthread
+LIBS = -lm -lwiringPi -lgps -pthread
+OBJ = auto.out
 CC = gcc
 default: auto
 
 auto: rovergps.c $(HEADERS)
-	$(CC) -o auto.out $(LIBS) $(HEADERS) rovergps.c
+	$(CC) -o $(OBJ) $(LIBS) $(HEADERS) rovergps.c
 
 clean:
-	-rm -f auto.out
+	-rm -f $(OBJ)

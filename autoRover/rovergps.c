@@ -14,7 +14,8 @@
 #define ERROR_DISTANCE_M 	14
 #define RADIUS_EARTH_M 		6371000
 #define PI			3.1416
-#define COMPASS_ERR		30
+#define MIN_COMPASS_ERR		5
+#define MAX_COMPASS_ERR		50
 
 #define MOTOR_LEFT_BACKWARD	0
 #define MOTOR_LEFT_FORWARD	1
@@ -36,10 +37,9 @@ struct TargetCords {
 
 double bearing(struct Gps* current, struct TargetCords* target);
 double distance(struct Gps* current, struct TargetCords* target);
+inline int compassError(struct Gps* current, double _distance);
 
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv){
 	printf("Starting Rover!\n");
 	/*Starts Inits*/
 	struct Gps *current = malloc(sizeof(struct Gps));
@@ -50,7 +50,8 @@ int main(int argc, char **argv)
 	target->Back = 0;
 	int _heading;
 	int _bearing;
-
+	int _compassError;
+	double _distance;
 	setScale();
 	current->GpsInit = GpsInit;
 	current->GpsInit(current);
@@ -67,22 +68,28 @@ int main(int argc, char **argv)
 	while (target->Next) {
 		_heading = (int)heading();
 		_bearing = (int)bearing(current,target);
-		if(distance(current,target)>0){
+		_distance = distance(current,target);
+		_compassError = compassError(current,_distance);
+		if(_distance>=current->GetError()){
 			//Forwards
-			if((_heading-_bearing) % 360 < (_heading + COMPASS_ERR) % 360
-			&& (_heading-_bearing) % 360 > (_heading + COMPASS_ERR) % 360){
+			if((_heading-_bearing) % 360 < (_heading + _compassError) % 360
+			&& (_heading-_bearing) % 360 > (_heading + _compassError) % 360){
 				Stop_Motors_For(MOTOR_STOP);
+				digitalWrite(MOTOR_RIGHT_FORWARD,1);
+				digitalWrite(MOTOR_LEFT_FORWARD,1);
 			}
 			//Backwards
-			else if((_heading-_bearing-180) % 360 < (_heading + COMPASS_ERR) % 360
-                             && (_heading-_bearing-180) % 360 > (_heading + COMPASS_ERR) % 360){
+			else if((_heading-_bearing-180) % 360 < (_heading + _compassError) % 360
+                             && (_heading-_bearing-180) % 360 > (_heading + _compassError) % 360){
 				Stop_Motors_For(MOTOR_STOP);
+				digitalWrite(MOTOR_RIGHT_BACKWARD,1);
+				digitalWrite(MOTOR_LEFT_BACKWARD,1);
 			}
 			//Left
-			else if ((_bearing - _heading) % 360 > (180-COMPASS_ERR)){
+			else if ((_bearing - _heading) % 360 > (180 - _compassError)){
 				Stop_Motors_For(MOTOR_STOP);
-				while((_heading-_bearing) % 360 < (_heading + COMPASS_ERR) % 360
-                        	   && (_heading-_bearing) % 360 > (_heading + COMPASS_ERR) % 360){
+				while((_heading-_bearing) % 360 < (_heading + _compassError) % 360
+                        	   && (_heading-_bearing) % 360 > (_heading + _compassError) % 360){
 					digitalWrite(MOTOR_RIGHT_FORWARD,0);
 					delay(10);
 					digitalWrite(MOTOR_RIGHT_FORWARD,1);
@@ -90,10 +97,10 @@ int main(int argc, char **argv)
 				}
 			}
 			//Right
-			else if ((_bearing - _heading) % 360 < (COMPASS_ERR)){
+			else if ((_bearing - _heading) % 360 < (_compassError)){
 				Stop_Motors_For(MOTOR_STOP);
-                                while((_heading-_bearing) % 360 < (_heading + COMPASS_ERR) % 360
-                                   && (_heading-_bearing) % 360 > (_heading + COMPASS_ERR) % 360){
+                                while((_heading-_bearing) % 360 < (_heading + _compassError) % 360
+                                   && (_heading-_bearing) % 360 > (_heading + _compassError) % 360){
                                         digitalWrite(MOTOR_LEFT_FORWARD,0);
                                         delay(10);
                                         digitalWrite(MOTOR_LEFT_FORWARD,1);
@@ -130,7 +137,14 @@ double distance(struct Gps* current,struct TargetCords* target) {
 	      * cos(target->Latitude * PI / 180.0f)
 		  * beta * beta;
 
-	alpha = 2 * atan2(sqrt(alpha), sqrt(1 - alpha)) * RADIUS_EARTH_M;
+	return (2 * atan2(sqrt(alpha), sqrt(1 - alpha)) * RADIUS_EARTH_M);
+}
 
-	return (alpha < ERROR_DISTANCE_M)?0.0:alpha;
+inline int compassError(struct Gps* current, double _distnace){
+	int err = atan(current->GetError()/_distance));
+	if(err < MIN_COMPASS_ERR)
+		err = MIN_COMPASS_ERR;
+	else if(err > MAX_COMPASS_ERR)
+		err = MAX_COMPASS_ERR;
+	return err;
 }

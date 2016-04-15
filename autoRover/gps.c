@@ -5,14 +5,20 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <gps.h>
 #include "gps.h"
 struct __GpsPrivate__ {
+	float error;
 	float longitude;
 	float latitude;
 	int ThreadID;
 	pthread_t UpdateThread;
 	void *(*UpdateGps)(void* args);
 }*__GpsPrivate__Section;
+
+float GetError__GpsPrivate__Section(void){
+	return __GpsPrivate__Section->error;
+}
 
 float GetLongitude__GpsPrivate__Section(void) {
 	return __GpsPrivate__Section->longitude;
@@ -52,13 +58,36 @@ void UpdateThreadKill__GpsPrivate__Section(void){
 }
 
 void *UpdateGps__GpsPrivate__Section(void* args){
-	printf("Update Thread Running!\n");
-	while(1){
-		delay(100);
+	int rc;
+	struct gps_data_t gps;
+	if ((rc = gps_open("localhost", "2947", &gps)) == -1) {
+	    printf("code: %d, reason: %s\n", rc, gps_errstr(rc));
+	}
+	else{
+		printf("Update Thread Running!\n");
+		gps_stream(&gps, WATCH_ENABLE | WATCH_JSON, NULL);
+		while(1){
+			if (gps_waiting (&gps,2000000)){
+				if(gps_read(&gps)==-1){
+					printf("ERROR: gps not read correctly");
+				}
+				else{
+					if ((gps.status == STATUS_FIX) &&
+                			(gps.fix.mode == MODE_2D || gps.fix.mode == MODE_3D) &&
+                			!isnan(gps.fix.latitude) &&
+                			!isnan(gps.fix.longitude)) {
+						printf("EPX: %f EPY: %f\n",gps.fix.epx,gps.fix.epy);
+						__GpsPrivate__Section->longitude = gps.fix.longitude;
+						__GpsPrivate__Section->latitude = gps.fix.latitude;
+						__GpsPrivate__Section->error = (gps.fix.epx >= gps.fix.epy)?gps.fix.epx:gps.fix.epy;
+					}
+				}
+			}
+		}
 	}
 }
 
-void GpsInit(struct Gps* current){
+void GpsInit(struct Gps *current){
 	printf("Initializing Gps Object!\n");
 	__GpsPrivate__Section = malloc(sizeof(struct __GpsPrivate__));
 	__GpsPrivate__Section->longitude = 0.0f;
@@ -71,6 +100,7 @@ void GpsInit(struct Gps* current){
         current->UpdateThreadStart = UpdateThreadStart__GpsPrivate__Section;
         current->GetLongitude = GetLongitude__GpsPrivate__Section;
         current->GetLatitude = GetLatitude__GpsPrivate__Section;
+	current->GetError = GetError__GpsPrivate__Section;
 }
 #define __GpsPrivate__Section
 #define __GpsPrivate__

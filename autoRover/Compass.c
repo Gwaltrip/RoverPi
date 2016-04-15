@@ -16,6 +16,7 @@
 #define GAUSS           1.3f
 #define PI              3.1416f
 #define SAMPLE_RATE_MS  100
+#define COMP_ERR	33
 
 #define I2CRead(X)      wiringPiI2CReadReg8(compassfd,X)
 #define I2CWrite(X,Y)   wiringPiI2CWriteReg8(compassfd,X,Y)
@@ -37,6 +38,8 @@ float heading() {
 	float y_axis = makeWord(I2CRead(Y_MSB), I2CRead(Y_LSB)) * DigitalResolution;
 	float heading = atan2(y_axis, x_axis);
 	heading = (heading > 0 ? heading : (2 * PI + heading)) * 180 / PI;
+        heading += COMP_ERR;
+        heading = ( heading > 360.0f ? heading - 360.0f : heading );
 	return heading;
 }
 
