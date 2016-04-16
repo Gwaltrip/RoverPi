@@ -1,23 +1,44 @@
-HEADERSGPS = autoRover/Compass.c autoRover/gps.c
+HEADERSGPS = autoRover/Compass.c autoRover/gps.c autoRover/csv.c
 HEADERSTCP = tcpRover/tcp.c
-LIBSGPS = -lm
+LIBSGPS = -lm -lgps
 LIBSBLUE = -lbluetooth
 LIBS = -lwiringPi -pthread
+AUTODIR = autoRover
+BLUEDIR = blueRover
+TCPDIR = tcpRover
+AUTOOBJ = auto.out
+BLUEOBJ = blue.out
+TCPOBJ = tcp.out
 CC = gcc
+NETC = dmcs
+BIN = bin
 default: all
 
-all: gps bluetooth tcp
+all: mkbin gps bluetooth tcp monoconsole
 
-gps: rovergps.c $(HEADERS)
-	$(CC) -o RoverGps.out $(LIBSGPS) $(LIBS) $(HEADERSGPS) autoRover/rovergps.c
+mkbin:
+	mkdir -p $(BIN)
 
-bluetooth: roverblue.c $(HEADERS)
-	$(CC) -o RoverBluetooth.out $(LIBS) $(LIBSBLUE)  autoRover/roverblue.c
+gps: mkbin
+	$(CC) -o $(BIN)/RoverGps.out $(LIBSGPS) $(LIBS) $(HEADERSGPS) autoRover/rovergps.c
+	cp $(AUTODIR)/targets.csv $(BIN)/targets.csv
 
-tcp: rovertcp.c $(HEADERS)
-	$(CC) -o RoverTCP.out $(LIBS) $(HEADERSTCP)  tcpRover/rovertcp.c
+bluetooth: mkbin
+	$(CC) -o $(BIN)/RoverBluetooth.out $(LIBS) $(LIBSBLUE)  blueRover/roverblue.c
+
+tcp: mkbin
+	$(CC) -o $(BIN)/RoverTCP.out $(LIBS) $(HEADERSTCP)  tcpRover/rovertcp.c
+
+monoconsole: mkbin
+	$(NETC) ./PiSockets/Program.cs -out:./$(BIN)/client.mono
 
 clean:
-	-rm -f RoverGps.out
-	-rm -f RoverBluetooth.out
-	-rm -f RoverTCP.out
+	-rm -f $(BIN)/$(AUTOOBJ) || true
+	-rm -f $(BIN)/$(BLUEOBJ) || true
+	-rm -f $(BIN)/$(TCPOBJ) || true
+	-rm -f $(BIN)/client.mono || true
+	-rm -f $(BIN)/targets.csv || true
+	-rm -rf $(BIN) || true
+	-rm -f $(AUTODIR)/$(AUTOOBJ) || true
+	-rm -f $(BLUEDIR)/$(BLUEOBJ) || true
+	-rm -f $(TCPDIR)/$(TCPOBJ) || true
