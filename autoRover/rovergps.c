@@ -6,6 +6,7 @@
 #include <math.h>
 #include <wiringPi.h>
 #include <stdio.h>
+#include "csv.h"
 #include "gps.h"
 #include "Compass.h"
 
@@ -27,14 +28,6 @@
 					digitalWrite(MOTOR_RIGHT_BACKWARD,0);\
 					digitalWrite(MOTOR_RIGHT_FORWARD,0);\
 					delay(ms);
-
-struct TargetCords {
-	double Longitude;
-	double Latitude;
-	struct TargetCords* Next;
-	struct TargetCords* Back;
-};
-
 double bearing(struct Gps* current, struct TargetCords* target);
 double distance(struct Gps* current, struct TargetCords* target);
 inline int compassError(struct Gps* current, double _distance);
@@ -48,6 +41,8 @@ int main(int argc, char **argv){
 	target->Longitude = 0.0f;
 	target->Next = 0;
 	target->Back = 0;
+	target = GetTargetCords("targets.csv");
+
 	int _heading;
 	int _bearing;
 	int _compassError;
@@ -112,6 +107,10 @@ int main(int argc, char **argv){
 	delay(100);
 	current->UpdateThreadKill();
 	printf("Stopping Rover!\n");
+	while(target->Back){
+		target = target->Back;
+		free(target->Next);
+	}
 	free(current);
 	return 0;
 }
@@ -140,8 +139,8 @@ double distance(struct Gps* current,struct TargetCords* target) {
 	return (2 * atan2(sqrt(alpha), sqrt(1 - alpha)) * RADIUS_EARTH_M);
 }
 
-inline int compassError(struct Gps* current, double _distnace){
-	int err = atan(current->GetError()/_distance));
+inline int compassError(struct Gps* current, double _distance){
+	int err = atan(current->GetError()/_distance);
 	if(err < MIN_COMPASS_ERR)
 		err = MIN_COMPASS_ERR;
 	else if(err > MAX_COMPASS_ERR)

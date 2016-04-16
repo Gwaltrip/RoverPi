@@ -1,4 +1,4 @@
-HEADERS = Compass.c gps.c
+HEADERS = Compass.c gps.c csv.c
 LIBS = -lm -lwiringPi -lgps -pthread
 OBJ = auto.out
 CC = gcc

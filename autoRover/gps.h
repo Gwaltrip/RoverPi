@@ -1,5 +1,11 @@
 #ifndef GPS_HEADER
 #define GPS_HEADER
+struct TargetCords {
+        double Longitude;
+        double Latitude;
+        struct TargetCords* Next;
+        struct TargetCords* Back;
+};
 struct Gps {
 	float(*GetError)(void);
 	float(*GetLongitude)(void);
