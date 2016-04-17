@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="ForwardButton">Forward</string>
+  <string name="LeftButton">Left</string>
+  <string name="RightButton">Right</string>
+  <string name="BackwardButton">Backward</string>
+  <string name="StopButton">Stop</string>
+  <string name="Hello">Light Button</string>
+  <string name="Connect">Connect</string>
+  <string name="ApplicationName">PiAndroidLights</string>
+</resources>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:minWidth="25px"
+    android:minHeight="25px">
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText1" />
+    <Button
+        android:id="@+id/Connect"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/Connect" />
+    <Button
+        android:id="@+id/ForwardButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ForwardButton" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/linearLayout1">
+        <Button
+            android:id="@+id/LeftButton"
+            android:text="@string/LeftButton"
+            android:layout_width="180.5dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="13.5dp" />
+        <Button
+            android:id="@+id/RightButton"
+            android:text="@string/RightButton"
+            android:layout_width="180.5dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="6.5dp" />
+    </LinearLayout>
+    <Button
+        android:id="@+id/BackwardButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/BackwardButton" />
+    <Button
+        android:id="@+id/StopButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/StopButton" />
+</LinearLayout>
