@@ -12,3 +12,7 @@ The last controller is using a GPS and a compass to determines how to react.
 To Compile this alone use "make gps"
 
 To make all of theses at the sametime just use "make"
+
+For PiSockets you will need the Mono Runtime to run this on Linux.
+
+For PiRoverController you will need to use Xamarin to compile and run the code.
