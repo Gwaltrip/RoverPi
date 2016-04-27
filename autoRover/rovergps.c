@@ -65,26 +65,21 @@ int main(int argc, char **argv){
 		_bearing = (int)bearing(current,target);
 		_distance = distance(current,target);
 		_compassError = compassError(current,_distance);
+		int leftness = ((_heading-_compassError)%360)<_bearing;
+		int rightness = ((_heading+_compassError)%360)>_bearing;
 		if(_distance>=current->GetError()){
 			//Forwards
-			if((_heading-_bearing) % 360 < (_heading + _compassError) % 360
-			&& (_heading-_bearing) % 360 > (_heading + _compassError) % 360){
+			if(leftness&&rightness){
 				Stop_Motors_For(MOTOR_STOP);
 				digitalWrite(MOTOR_RIGHT_FORWARD,1);
 				digitalWrite(MOTOR_LEFT_FORWARD,1);
 			}
-			//Backwards
-			else if((_heading-_bearing-180) % 360 < (_heading + _compassError) % 360
-                             && (_heading-_bearing-180) % 360 > (_heading + _compassError) % 360){
-				Stop_Motors_For(MOTOR_STOP);
-				digitalWrite(MOTOR_RIGHT_BACKWARD,1);
-				digitalWrite(MOTOR_LEFT_BACKWARD,1);
-			}
 			//Left
-			else if ((_bearing - _heading) % 360 > (180 - _compassError)){
+			else if (leftness){
 				Stop_Motors_For(MOTOR_STOP);
-				while((_heading-_bearing) % 360 < (_heading + _compassError) % 360
-                        	   && (_heading-_bearing) % 360 > (_heading + _compassError) % 360){
+				while(leftness&&rightness){
+					leftness = ((_heading-_compassError)%360)<_bearing;
+					rightness = ((_heading+_compassError)%360)>_bearing;
 					digitalWrite(MOTOR_RIGHT_FORWARD,0);
 					delay(10);
 					digitalWrite(MOTOR_RIGHT_FORWARD,1);
@@ -92,15 +87,16 @@ int main(int argc, char **argv){
 				}
 			}
 			//Right
-			else if ((_bearing - _heading) % 360 < (_compassError)){
+			else if (rightness){
 				Stop_Motors_For(MOTOR_STOP);
-                                while((_heading-_bearing) % 360 < (_heading + _compassError) % 360
-                                   && (_heading-_bearing) % 360 > (_heading + _compassError) % 360){
-                                        digitalWrite(MOTOR_LEFT_FORWARD,0);
-                                        delay(10);
-                                        digitalWrite(MOTOR_LEFT_FORWARD,1);
-                                        delay(10);
-                                }
+				while(leftness&&rightness){
+					leftness = ((_heading-_compassError)%360)<_bearing;
+					rightness = ((_heading+_compassError)%360)>_bearing;
+					digitalWrite(MOTOR_LEFT_FORWARD,0);
+					delay(10);
+					digitalWrite(MOTOR_LEFT_FORWARD,1);
+					delay(10);
+				}
 			}
 		}
 	}
