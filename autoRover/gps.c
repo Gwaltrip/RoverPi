@@ -76,7 +76,6 @@ void *UpdateGps__GpsPrivate__Section(void* args){
                 			(gps.fix.mode == MODE_2D || gps.fix.mode == MODE_3D) &&
                 			!isnan(gps.fix.latitude) &&
                 			!isnan(gps.fix.longitude)) {
-						printf("EPX: %f EPY: %f\n",gps.fix.epx,gps.fix.epy);
 						__GpsPrivate__Section->longitude = gps.fix.longitude;
 						__GpsPrivate__Section->latitude = gps.fix.latitude;
 						__GpsPrivate__Section->error = (gps.fix.epx >= gps.fix.epy)?gps.fix.epx:gps.fix.epy;

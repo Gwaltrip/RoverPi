@@ -23,11 +23,13 @@
 #define MOTOR_RIGHT_BACKWARD	2
 #define	MOTOR_RIGHT_FORWARD	3
 
-#define Stop_Motors_For(ms)		digitalWrite(MOTOR_LEFT_BACKWARD,0);\
-					digitalWrite(MOTOR_LEFT_FORWARD,0);\
-					digitalWrite(MOTOR_RIGHT_BACKWARD,0);\
-					digitalWrite(MOTOR_RIGHT_FORWARD,0);\
-					delay(ms);
+#define Stop_Motors_For(ms)	digitalWrite(MOTOR_LEFT_BACKWARD,0);\
+				digitalWrite(MOTOR_LEFT_FORWARD,0);\
+				digitalWrite(MOTOR_RIGHT_BACKWARD,0);\
+				digitalWrite(MOTOR_RIGHT_FORWARD,0);\
+				delay(ms);
+#define ToRadian(x)		((x)*PI/180.0f)
+#define ToDegree(x)		((x)*180.0f/PI)
 double bearing(struct Gps* current, struct TargetCords* target);
 double distance(struct Gps* current, struct TargetCords* target);
 inline int compassError(struct Gps* current, double _distance);
@@ -37,8 +39,8 @@ int main(int argc, char **argv){
 	/*Starts Inits*/
 	struct Gps *current = malloc(sizeof(struct Gps));
 	struct TargetCords* target = malloc(sizeof(struct TargetCords));
-	target->Latitude = 0.0f;
-	target->Longitude = 0.0f;
+	target->Latitude = 0.1f;
+	target->Longitude = 0.1f;
 	target->Next = 0;
 	target->Back = 0;
 	target = GetTargetCords("targets.csv");
@@ -52,6 +54,11 @@ int main(int argc, char **argv){
 	current->GpsInit(current);
 	current->UpdateThreadStart();
 
+	while(!current->GetLongitude()){
+                printf("\033[H\033[J");
+		printf("Waiting For GPS\n");
+		delay(100);
+	}
 	pinMode(MOTOR_LEFT_BACKWARD,OUTPUT);
 	pinMode(MOTOR_LEFT_FORWARD,OUTPUT);
 	pinMode(MOTOR_RIGHT_BACKWARD,OUTPUT);
@@ -67,6 +74,16 @@ int main(int argc, char **argv){
 		_compassError = compassError(current,_distance);
 		int leftness = ((_heading-_compassError)%360)<_bearing;
 		int rightness = ((_heading+_compassError)%360)>_bearing;
+
+		/* Outputing Raw Data  */
+		printf("Current Log: %f   Current Lat: %f\n",current->GetLongitude(),current->GetLatitude());
+		printf("Target Log: %f   Target Lat: %f\n",target->Longitude,target->Latitude);
+		printf("GPS Error: %f \n",current->GetError());
+		printf("Heading: %d   Bearing: %d\n",_heading,_bearing);
+		printf("Distance: %3.1f   CompassErr: %d\n",_distance,_compassError);
+                printf("\033[H\033[J");
+		/* End Output */
+
 		if(_distance>=current->GetError()){
 			//Forwards
 			if(leftness&&rightness){
@@ -99,6 +116,7 @@ int main(int argc, char **argv){
 				}
 			}
 		}
+		delay(10);
 	}
 	delay(100);
 	current->UpdateThreadKill();
@@ -112,16 +130,31 @@ int main(int argc, char **argv){
 }
 
 double bearing(struct Gps* current, struct TargetCords* target) {
-	double theda = atan2(cos(current->GetLatitude())
-				*sin(target->Latitude)
-				-sin(current->GetLatitude())
-				*cos(target->Latitude)
-				*cos(target->Longitude
-				-current->GetLongitude()),
-				sin(target->Longitude-current->GetLongitude())
-				*cos(target->Latitude)
-				);
-	return theda;
+		double tLon = target->Longitude,
+		       cLon = current->GetLongitude();
+		double tLat = target->Latitude,
+		       cLat = current->GetLatitude();
+
+		double dLon = ToRadian(tLon - cLon);
+		double lat1 = ToRadian(cLat);
+		double lat2 = ToRadian(tLat);
+
+		double y = sin(dLon) * cos(lat2);
+		double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+		return fmod(ToDegree(atan2(y,x))+360.0,360.0);
+/*
+	double lon1 = current->GetLongitude(),
+		lon2 = target->Longitude;
+	double lat1 = current->GetLatitude(),
+		lat2 = target->Latitude;
+	double londif = lon2-lon1;
+	double brng = atan2((sin(londif)*cos(lat2)),
+			((cos(lat1)*sin(lat2))-(sin(lat1)*cos(lat2)*cos(londif))));
+	brng *= (180.0f/PI);
+	if(brng<=0){
+		brng+=360;
+	}
+	return brng;*/
 }
 
 double distance(struct Gps* current,struct TargetCords* target) {
