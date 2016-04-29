@@ -22,6 +22,7 @@ mkbin:
 gps: mkbin
 	$(CC) -o $(BIN)/RoverGps.out $(LIBSGPS) $(LIBS) $(HEADERSGPS) autoRover/rovergps.c
 	cp $(AUTODIR)/targets.csv $(BIN)/targets.csv
+	cp $(AUTODIR)/gpsdStart.sh $(BIN)/gpsdStart.sh
 
 bluetooth: mkbin
 	$(CC) -o $(BIN)/RoverBluetooth.out $(LIBS) $(LIBSBLUE)  blueRover/roverblue.c

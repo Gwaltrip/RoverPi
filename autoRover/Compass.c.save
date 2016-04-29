@@ -32,21 +32,21 @@ void compassInit() {
         I2CWrite(MODE_REG, 0x00);
         setScale();
         delay(16);
-	compass.ThreadID = -1;
-	compass.ThreadID = pthread_create(&compass.Thread,NULL,
-					  compassThreadStart, "");
+	compass.ThreadID = pthread_create(&compassThreadStart,NULL,
+					  compass.Thread, "");
 }
 
-void (*compassThreadStart()){
-	if(compass.ThreadID == -1){
-            while(1){
-	    	compass.heading = heading();
-            	int i = 0;
-            	for(i = 0; i < 13; i++)
-                	I2CRead(i);
-            	   delay(SAMPLE_RATE_MS);
+void *compassThreadStart(){
+    if(compass.ThreadID == -1){
+        while(1){
+	    compass.heading = heading();
+            int i = 0;
+            for(i = 0; i < 13; i++){
+                I2CRead(i);
             }
-	}
+            delay(SAMPLE_RATE_MS);
+        
+        return 0;
 }
 
 float heading(){

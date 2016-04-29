@@ -68,7 +68,7 @@ int main(int argc, char **argv){
 	/*Starts Main Loop*/
 	printf("Starting Mainloop!\n");
 	while (target->Next) {
-		_heading = (int)heading();
+		_heading = (int)compass.heading;
 		_bearing = (int)bearing(current,target);
 		_distance = distance(current,target);
 		_compassError = compassError(current,_distance);
@@ -130,31 +130,12 @@ int main(int argc, char **argv){
 }
 
 double bearing(struct Gps* current, struct TargetCords* target) {
-		double tLon = target->Longitude,
-		       cLon = current->GetLongitude();
-		double tLat = target->Latitude,
-		       cLat = current->GetLatitude();
-
-		double dLon = ToRadian(tLon - cLon);
-		double lat1 = ToRadian(cLat);
-		double lat2 = ToRadian(tLat);
-
-		double y = sin(dLon) * cos(lat2);
-		double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
-		return fmod(ToDegree(atan2(y,x))+360.0,360.0);
-/*
-	double lon1 = current->GetLongitude(),
-		lon2 = target->Longitude;
-	double lat1 = current->GetLatitude(),
-		lat2 = target->Latitude;
-	double londif = lon2-lon1;
-	double brng = atan2((sin(londif)*cos(lat2)),
-			((cos(lat1)*sin(lat2))-(sin(lat1)*cos(lat2)*cos(londif))));
-	brng *= (180.0f/PI);
-	if(brng<=0){
-		brng+=360;
-	}
-	return brng;*/
+	double dLon = ToRadian(target->Longitude - current->GetLongitude());
+	double lat1 = ToRadian(current->GetLatitude());
+	double lat2 = ToRadian(target->Latitude);
+	double y = sin(dLon) * cos(lat2);
+	double x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+	return fmod(ToDegree(atan2(y,x))+360.0,360.0);
 }
 
 double distance(struct Gps* current,struct TargetCords* target) {
